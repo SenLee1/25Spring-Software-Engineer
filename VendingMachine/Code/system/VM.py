@@ -19,13 +19,8 @@ class VendingMachine:
         ]
         self.admin_password = "123456"
         self.valid_coins = [100, 50, 20, 10, 5, 1, 0.5]
-<<<<<<< HEAD:Development/YourCodeExample/system/VM.py
-        self.coin_stock = {coin: 0 for coin in self.valid_coins}
-        self.coin_stock[1] = 5
-=======
         self.coin_stock = {coin: 5 for coin in self.valid_coins}
         self.insert_stock = {coin: 0 for coin in self.valid_coins}
->>>>>>> 37a43e380f84c001ff7267801619aa150ee2f17e:Code/system/VM.py
         self.coin_threshold = {
             100: 0, 50: 5, 20: 10, 
             10: 20, 5: 20, 1: 20, 0.5: 10

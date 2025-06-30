@@ -1,0 +1,791 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+int a,b,c,d,e=0;
+int a_chosen,b_chosen,c_chosen,d_chosen,e_chosen=0;
+int A=20;
+int B=15;
+int C=1;
+int D=15;
+int E=0;
+int current_money=0;
+int inserted_money=0;
+int price=0;
+int valid_change;
+bool is_admin=false;
+int C5=5;
+int D1,D5,D10,D20,D50,D100=5;
+
+chan Add;
+chan Insert_Money;
+chan Minus;
+chan Choose_admin;
+chan Choose_customer;
+chan sup_A,sup_B,sup_C,sup_D,sup_E;
+chan Right_password;
+chan Log_out;
+chan sup_5C,sup_1D,sup_5D,sup_10D,sup_20D,sup_50D,sup_100D;
+chan take_5C,take_1D,take_5D,take_10D,take_20D,take_50D,take_100D;
+chan confirm_purchase;
+chan Supply, Supply_money, Take_money;
+chan No_change, Ret_change;
+chan Give_change;
+chan Moneyback;
+
+int c5=0,d1=0,d5=0,d10=0,d20=0,d50=0,d100=0;
+
+int c5_num,d1_num,d10_num,d20_num,d50_num,d100_num=0;
+
+</declaration>
+	<template>
+		<name x="5" y="5">Machine</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id0" x="-476" y="254">
+		</location>
+		<location id="id1" x="-93" y="263">
+			<name x="-103" y="229">Customer</name>
+		</location>
+		<location id="id2" x="425" y="544">
+			<committed/>
+		</location>
+		<location id="id3" x="-127" y="527">
+			<name x="-195" y="544">PurchaseSuccessfully</name>
+		</location>
+		<location id="id4" x="561" y="76">
+			<name x="551" y="42">AdminChecking</name>
+		</location>
+		<location id="id5" x="1003" y="331">
+			<name x="993" y="297">Admin</name>
+		</location>
+		<location id="id6" x="110" y="561">
+			<name x="100" y="527">Checking</name>
+		</location>
+		<location id="id7" x="-85" y="8">
+			<urgent/>
+		</location>
+		<location id="id8" x="-374" y="25">
+		</location>
+		<location id="id9" x="977" y="76">
+			<urgent/>
+		</location>
+		<location id="id10" x="1147" y="110">
+		</location>
+		<init ref="id0"/>
+		<transition id="id11">
+			<source ref="id10"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="1062" y="127">Ret_change?</label>
+			<label kind="assignment" x="1062" y="144">current_money=0,
+D100=D100-d100,D50=D50-d50,
+D20=D20-d20,D10=D10-d10,
+D5=D5-d5,D1=D1-d1,C5=C5-c5,
+d100=0,d50=0,d20=0,d10=0,d5=0,d1=0,c5=0</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="1037" y="76">Give_change!</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id4"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="756" y="59">Right_password?</label>
+			<label kind="assignment" x="731" y="76">valid_change=current_money</label>
+		</transition>
+		<transition id="id14">
+			<source ref="id8"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-357" y="59">Ret_change?</label>
+			<label kind="assignment" x="-433" y="85">current_money=0,
+D100=D100-d100,D50=D50-d50,
+D20=D20-d20,D10=D10-d10,
+D5=D5-d5,D1=D1-d1,C5=C5-c5,
+d100=0,d50=0,d20=0,d10=0,d5=0,d1=0,c5=0</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-280" y="-17">Give_change!</label>
+			<nail x="-229" y="17"/>
+		</transition>
+		<transition id="id16">
+			<source ref="id1"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-93" y="144">Moneyback?</label>
+		</transition>
+		<transition id="id17">
+			<source ref="id6"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-25" y="408">No_change?</label>
+		</transition>
+		<transition id="id18">
+			<source ref="id2"/>
+			<target ref="id6"/>
+			<label kind="guard" x="187" y="527">price&lt;=current_money</label>
+			<label kind="synchronisation" x="212" y="552">Give_change!</label>
+		</transition>
+		<transition id="id19">
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="1224" y="416">Take_money?</label>
+			<label kind="assignment" x="1173" y="433">C5=C5+c5,D1=D1+d1,D5=D5+d5,D10=D10+d10,
+D20=D20+d20,D50=D50+d50,D100=D100+d100,
+c5=0,d1=0,d5=0,d10=0,
+d20=0,d50=0,d100=0</label>
+			<nail x="1181" y="527"/>
+			<nail x="1232" y="365"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="935" y="544">Supply_money?</label>
+			<label kind="assignment" x="892" y="569">C5=C5+c5,D1=D1+d1,D5=D5+d5,D10=D10+d10,
+D20=D20+d20,D50=D50+d50,
+c5=0,d1=0,d5=0,d10=0,
+d20=0,d50=0</label>
+			<nail x="909" y="535"/>
+			<nail x="1079" y="535"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="671" y="501">Supply?</label>
+			<label kind="assignment" x="628" y="526">A=A+a,B=B+b,C=C+c,D=D+d,
+E=E+e,a=0,b=0,c=0,d=0,e=0</label>
+			<nail x="697" y="467"/>
+			<nail x="739" y="535"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-331" y="586">Add?</label>
+			<label kind="assignment" x="-382" y="603">a_chosen=a_chosen+a,
+b_chosen=b_chosen+b,
+c_chosen=c_chosen+c,
+d_chosen=d_chosen+d,
+e_chosen=e_chosen+e,
+a=0,b=0,c=0,d=0,e=0</label>
+			<nail x="-357" y="569"/>
+			<nail x="-246" y="646"/>
+		</transition>
+		<transition id="id23">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-543" y="433">Minus?</label>
+			<label kind="assignment" x="-586" y="450">a_chosen=a_chosen-a,
+b_chosen=b_chosen-b,
+c_chosen=c_chosen-c,
+d_chosen=d_chosen-d,
+e_chosen=e_chosen-e,
+a=0,b=0,c=0,d=0,e=0</label>
+			<nail x="-501" y="450"/>
+			<nail x="-467" y="535"/>
+		</transition>
+		<transition id="id24">
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="586" y="204">Log_out?</label>
+			<nail x="620" y="238"/>
+		</transition>
+		<transition id="id25">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="144" y="153">Choose_customer?</label>
+		</transition>
+		<transition id="id26">
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="170" y="85">Choose_admin?</label>
+			<nail x="93" y="85"/>
+		</transition>
+		<transition id="id27">
+			<source ref="id3"/>
+			<target ref="id1"/>
+		</transition>
+		<transition id="id28">
+			<source ref="id0"/>
+			<target ref="id1"/>
+		</transition>
+		<transition id="id29">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-595" y="272">Insert_Money?</label>
+			<label kind="assignment" x="-731" y="289">current_money=current_money+inserted_money,
+inserted_money=0</label>
+			<nail x="-603" y="314"/>
+			<nail x="-568" y="366"/>
+		</transition>
+		<transition id="id30">
+			<source ref="id6"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-68" y="518">Ret_change?</label>
+			<label kind="assignment" x="-170" y="578">current_money = current_money - price,
+A=A-a_chosen,B=B-b_chosen,
+C=C-c_chosen,D=D-d_chosen,
+E=E-e_chosen,
+a_chosen=0,b_chosen=0,c_chosen=0,
+d_chosen=0,e_chosen=0</label>
+			<nail x="102" y="561"/>
+			<nail x="59" y="561"/>
+		</transition>
+		<transition id="id31">
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="280" y="357">current_money &lt; price</label>
+			<nail x="467" y="391"/>
+		</transition>
+		<transition id="id32">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="127" y="391">confirm_purchase?</label>
+			<label kind="assignment" x="119" y="408">price=a*35+b*20+c*50+d*40+e*10,
+valid_change=current_money-price</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Customer</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id33" x="-1173" y="-51">
+			<name x="-1215" y="-93">CustomerMode</name>
+		</location>
+		<location id="id34" x="-68" y="-59">
+			<name x="-78" y="-93">AdminMode</name>
+		</location>
+		<location id="id35" x="-569" y="-204">
+			<name x="-579" y="-238">InputtingPassword</name>
+		</location>
+		<init ref="id33"/>
+		<transition id="id36">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-867" y="34">Moneyback!</label>
+			<nail x="-867" y="85"/>
+			<nail x="-850" y="25"/>
+		</transition>
+		<transition id="id37">
+			<source ref="id34"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-424" y="-97">Log_out!</label>
+			<nail x="-442" y="-102"/>
+		</transition>
+		<transition id="id38">
+			<source ref="id35"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-731" y="-119">Choose_customer!</label>
+			<nail x="-697" y="-110"/>
+		</transition>
+		<transition id="id39">
+			<source ref="id35"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-442" y="-170">Right_password!</label>
+		</transition>
+		<transition id="id40">
+			<source ref="id33"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-841" y="-144">Choose_admin!</label>
+		</transition>
+		<transition id="id41">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-204" y="-204">D50&gt;20</label>
+			<label kind="synchronisation" x="-213" y="-187">Take_money!</label>
+			<label kind="assignment" x="-196" y="-170">d50=20-D50</label>
+			<nail x="-171" y="-179"/>
+			<nail x="-188" y="-145"/>
+		</transition>
+		<transition id="id42">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-211" y="-323">D20&gt;20</label>
+			<label kind="synchronisation" x="-228" y="-306">Take_money!</label>
+			<label kind="assignment" x="-211" y="-289">d20=20-D20</label>
+			<nail x="-178" y="-297"/>
+			<nail x="-204" y="-271"/>
+		</transition>
+		<transition id="id43">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-110" y="-247">D10&gt;20</label>
+			<label kind="synchronisation" x="-144" y="-238">Take_money!</label>
+			<label kind="assignment" x="-127" y="-221">d10=20-D10</label>
+			<nail x="-76" y="-221"/>
+			<nail x="-110" y="-212"/>
+		</transition>
+		<transition id="id44">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-34" y="-306">D5&gt;20</label>
+			<label kind="synchronisation" x="-59" y="-289">Take_money!</label>
+			<label kind="assignment" x="-42" y="-272">d5=20-D5</label>
+			<nail x="-8" y="-272"/>
+			<nail x="-42" y="-272"/>
+		</transition>
+		<transition id="id45">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="8" y="-221">D1&gt;20</label>
+			<label kind="synchronisation" x="-16" y="-200">Take_money!</label>
+			<label kind="assignment" x="-8" y="-183">d1=20-D1</label>
+			<nail x="42" y="-178"/>
+			<nail x="8" y="-187"/>
+		</transition>
+		<transition id="id46">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="51" y="144">Supply!</label>
+			<label kind="assignment" x="51" y="161">e=20-E</label>
+			<nail x="51" y="170"/>
+			<nail x="94" y="145"/>
+		</transition>
+		<transition id="id47">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-25" y="94">Supply!</label>
+			<label kind="assignment" x="-25" y="111">d=20-D</label>
+			<nail x="-25" y="111"/>
+			<nail x="1" y="94"/>
+		</transition>
+		<transition id="id48">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-357" y="-246">D100&gt;0</label>
+			<label kind="synchronisation" x="-374" y="-230">Take_money!</label>
+			<label kind="assignment" x="-374" y="-213">d100=-D100</label>
+			<nail x="-314" y="-221"/>
+			<nail x="-323" y="-187"/>
+		</transition>
+		<transition id="id49">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="76" y="-59">D5&lt;20</label>
+			<label kind="synchronisation" x="51" y="-50">Supply_money!</label>
+			<label kind="assignment" x="77" y="-33">d5=20-D5</label>
+			<nail x="111" y="-42"/>
+			<nail x="110" y="-7"/>
+		</transition>
+		<transition id="id50">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="195" y="-93">D10&lt;20</label>
+			<label kind="synchronisation" x="162" y="-76">Supply_money!</label>
+			<label kind="assignment" x="179" y="-59">d10=20-D10</label>
+			<nail x="230" y="-76"/>
+			<nail x="238" y="-42"/>
+		</transition>
+		<transition id="id51">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="102" y="-119">D20&lt;20</label>
+			<label kind="synchronisation" x="77" y="-110">Supply_money!</label>
+			<label kind="assignment" x="102" y="-93">d20=20-D20</label>
+			<nail x="128" y="-101"/>
+			<nail x="136" y="-84"/>
+		</transition>
+		<transition id="id52">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="187" y="34">D1&lt;20</label>
+			<label kind="synchronisation" x="162" y="43">Supply_money!</label>
+			<label kind="assignment" x="196" y="60">d1=20-D1</label>
+			<nail x="212" y="85"/>
+			<nail x="213" y="85"/>
+			<nail x="212" y="42"/>
+		</transition>
+		<transition id="id53">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="34" y="17">C5&lt;20</label>
+			<label kind="synchronisation" x="17" y="34">Supply_money!</label>
+			<label kind="assignment" x="60" y="51">c5=20-C5</label>
+			<nail x="51" y="60"/>
+			<nail x="59" y="27"/>
+		</transition>
+		<transition id="id54">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="178" y="-178">D50&lt;20</label>
+			<label kind="synchronisation" x="153" y="-161">Supply_money!</label>
+			<label kind="assignment" x="179" y="-144">d50=20-D50</label>
+			<nail x="187" y="-161"/>
+			<nail x="204" y="-135"/>
+		</transition>
+		<transition id="id55">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="93" y="-213">C5&gt;20</label>
+			<label kind="synchronisation" x="68" y="-195">Take_money!</label>
+			<label kind="assignment" x="85" y="-178">c5=20-C5</label>
+			<nail x="93" y="-187"/>
+			<nail x="119" y="-170"/>
+		</transition>
+		<transition id="id56">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-51" y="221">Supply!</label>
+			<label kind="assignment" x="-51" y="246">c=20-C</label>
+			<nail x="-51" y="221"/>
+			<nail x="-25" y="213"/>
+		</transition>
+		<transition id="id57">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-118" y="123">Supply!</label>
+			<label kind="assignment" x="-118" y="140">b=20-B</label>
+			<nail x="-110" y="128"/>
+			<nail x="-76" y="136"/>
+		</transition>
+		<transition id="id58">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-186" y="170">Supply!</label>
+			<label kind="assignment" x="-195" y="195">a=20-A</label>
+			<nail x="-178" y="170"/>
+			<nail x="-144" y="179"/>
+		</transition>
+		<transition id="id59">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-935" y="-212">e_chosen&lt;E</label>
+			<label kind="synchronisation" x="-910" y="-195">Add!</label>
+			<label kind="assignment" x="-910" y="-178">e=1</label>
+			<nail x="-927" y="-221"/>
+			<nail x="-918" y="-187"/>
+		</transition>
+		<transition id="id60">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-961" y="-289">e_chosen&gt;0</label>
+			<label kind="synchronisation" x="-944" y="-272">Minus!</label>
+			<label kind="assignment" x="-927" y="-255">e=1</label>
+			<nail x="-952" y="-272"/>
+			<nail x="-926" y="-247"/>
+		</transition>
+		<transition id="id61">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1097" y="-229">d_chosen&gt;0</label>
+			<label kind="synchronisation" x="-1090" y="-208">Minus!</label>
+			<label kind="assignment" x="-1080" y="-195">d=1</label>
+			<nail x="-1073" y="-199"/>
+			<nail x="-1064" y="-208"/>
+			<nail x="-1039" y="-191"/>
+		</transition>
+		<transition id="id62">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1122" y="-340">c_chosen&gt;0</label>
+			<label kind="synchronisation" x="-1097" y="-323">Minus!</label>
+			<label kind="assignment" x="-1088" y="-306">c=1</label>
+			<nail x="-1080" y="-323"/>
+			<nail x="-1046" y="-314"/>
+		</transition>
+		<transition id="id63">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1199" y="-246">b_chosen&gt;0</label>
+			<label kind="synchronisation" x="-1190" y="-221">Minus!</label>
+			<label kind="assignment" x="-1190" y="-204">b=1</label>
+			<nail x="-1173" y="-238"/>
+			<nail x="-1131" y="-229"/>
+		</transition>
+		<transition id="id64">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1275" y="-297">a_chosen&gt;0</label>
+			<label kind="synchronisation" x="-1259" y="-280">Minus!</label>
+			<label kind="assignment" x="-1250" y="-263">a=1</label>
+			<nail x="-1258" y="-272"/>
+			<nail x="-1215" y="-280"/>
+		</transition>
+		<transition id="id65">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1343" y="-246">d_chosen&lt;D</label>
+			<label kind="synchronisation" x="-1326" y="-229">Add!</label>
+			<label kind="assignment" x="-1326" y="-212">d=1</label>
+			<nail x="-1335" y="-212"/>
+			<nail x="-1275" y="-229"/>
+		</transition>
+		<transition id="id66">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1428" y="-229">c_chosen&lt;C</label>
+			<label kind="synchronisation" x="-1394" y="-212">Add!</label>
+			<label kind="assignment" x="-1394" y="-195">c=1</label>
+			<nail x="-1394" y="-178"/>
+			<nail x="-1360" y="-204"/>
+		</transition>
+		<transition id="id67">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1488" y="-187">b_chosen&lt;B</label>
+			<label kind="synchronisation" x="-1437" y="-170">Add!</label>
+			<label kind="assignment" x="-1437" y="-153">b=1</label>
+			<nail x="-1428" y="-136"/>
+			<nail x="-1403" y="-170"/>
+		</transition>
+		<transition id="id68">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-1522" y="-136">a_chosen&lt;A</label>
+			<label kind="synchronisation" x="-1471" y="-119">Add!</label>
+			<label kind="assignment" x="-1471" y="-102">a=1</label>
+			<nail x="-1445" y="-85"/>
+			<nail x="-1437" y="-119"/>
+		</transition>
+		<transition id="id69">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-297" y="85">is_admin==false</label>
+			<label kind="synchronisation" x="-297" y="102">Right_password!</label>
+			<nail x="-255" y="76"/>
+			<nail x="-221" y="93"/>
+		</transition>
+		<transition id="id70">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1488" y="-34">Insert_Money!</label>
+			<label kind="assignment" x="-1505" y="-17">inserted_money=1000,
+D100=D100+1</label>
+			<nail x="-1420" y="9"/>
+			<nail x="-1420" y="-42"/>
+		</transition>
+		<transition id="id71">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1445" y="25">Insert_Money!</label>
+			<label kind="assignment" x="-1479" y="42">inserted_money=500,
+D50=D50+1</label>
+			<nail x="-1377" y="68"/>
+			<nail x="-1394" y="17"/>
+		</transition>
+		<transition id="id72">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1036" y="59">Insert_Money!</label>
+			<label kind="assignment" x="-1045" y="76">inserted_money=200,
+D20=D20+1</label>
+			<nail x="-1011" y="127"/>
+			<nail x="-985" y="85"/>
+		</transition>
+		<transition id="id73">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1139" y="110">Insert_Money!</label>
+			<label kind="assignment" x="-1147" y="144">inserted_money=100,
+D10=D10+1</label>
+			<nail x="-1113" y="178"/>
+			<nail x="-1071" y="152"/>
+		</transition>
+		<transition id="id74">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1241" y="170">Insert_Money!</label>
+			<label kind="assignment" x="-1241" y="187">inserted_money=50,
+D5=D5+1</label>
+			<nail x="-1232" y="195"/>
+			<nail x="-1164" y="187"/>
+		</transition>
+		<transition id="id75">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1385" y="170">Insert_Money!</label>
+			<label kind="assignment" x="-1394" y="187">inserted_money=10,
+D1=D1+1</label>
+			<nail x="-1309" y="170"/>
+			<nail x="-1275" y="178"/>
+		</transition>
+		<transition id="id76">
+			<source ref="id33"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1411" y="93">Insert_Money!</label>
+			<label kind="assignment" x="-1445" y="110">inserted_money=5,
+C5=C5+1</label>
+			<nail x="-1360" y="102"/>
+			<nail x="-1318" y="136"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">ChangeChcker</name>
+		<declaration>// Place local declarations here.
+int Rest_change=0;</declaration>
+		<location id="id77" x="374" y="348">
+			<name x="349" y="315">Checking</name>
+		</location>
+		<location id="id78" x="1181" y="-34">
+			<name x="1154" y="-68">Success</name>
+			<committed/>
+		</location>
+		<location id="id79" x="-731" y="-34">
+			<name x="-748" y="-17">Find_D100</name>
+			<committed/>
+		</location>
+		<location id="id80" x="-467" y="-34">
+			<name x="-510" y="-76">Find_D50</name>
+			<committed/>
+		</location>
+		<location id="id81" x="-153" y="-34">
+			<name x="-187" y="-17">Find_D20</name>
+			<committed/>
+		</location>
+		<location id="id82" x="144" y="-34">
+			<name x="134" y="-68">Find_D10</name>
+			<committed/>
+		</location>
+		<location id="id83" x="442" y="-34">
+			<name x="416" y="-8">Find_D5</name>
+			<committed/>
+		</location>
+		<location id="id84" x="722" y="-34">
+			<name x="697" y="-68">Find_D1</name>
+			<committed/>
+		</location>
+		<location id="id85" x="994" y="-34">
+			<name x="968" y="-17">Find_C5</name>
+			<committed/>
+		</location>
+		<location id="id86" x="637" y="42">
+			<name x="627" y="8">Failure</name>
+			<committed/>
+		</location>
+		<init ref="id77"/>
+		<transition id="id87">
+			<source ref="id78"/>
+			<target ref="id77"/>
+			<label kind="synchronisation" x="739" y="119">Ret_change!</label>
+		</transition>
+		<transition id="id88">
+			<source ref="id86"/>
+			<target ref="id77"/>
+			<label kind="synchronisation" x="450" y="161">No_change!</label>
+		</transition>
+		<transition id="id89">
+			<source ref="id85"/>
+			<target ref="id86"/>
+			<label kind="guard" x="697" y="8">c5==C5 &amp;&amp; Rest_change!=0</label>
+		</transition>
+		<transition id="id90">
+			<source ref="id79"/>
+			<target ref="id79"/>
+			<label kind="guard" x="-867" y="-229">Rest_change&gt;=1000 &amp;&amp; d100&lt;D100</label>
+			<label kind="assignment" x="-876" y="-203">Rest_change=Rest_change-1000,
+d100=d100+1</label>
+			<nail x="-697" y="-203"/>
+			<nail x="-774" y="-203"/>
+		</transition>
+		<transition id="id91">
+			<source ref="id85"/>
+			<target ref="id78"/>
+			<label kind="guard" x="1020" y="-59">Rest_change==0</label>
+		</transition>
+		<transition id="id92">
+			<source ref="id84"/>
+			<target ref="id85"/>
+			<label kind="guard" x="765" y="-59">Rest_change&lt;10 || d1==D1</label>
+		</transition>
+		<transition id="id93">
+			<source ref="id83"/>
+			<target ref="id84"/>
+			<label kind="guard" x="476" y="-59">Rest_change&lt;50 || d5==D5</label>
+		</transition>
+		<transition id="id94">
+			<source ref="id82"/>
+			<target ref="id83"/>
+			<label kind="guard" x="195" y="-59">Rest_change&lt;100 || d10==D10</label>
+		</transition>
+		<transition id="id95">
+			<source ref="id81"/>
+			<target ref="id82"/>
+			<label kind="guard" x="-119" y="-59">Rest_change&lt;200 || d20==D20</label>
+		</transition>
+		<transition id="id96">
+			<source ref="id80"/>
+			<target ref="id81"/>
+			<label kind="guard" x="-425" y="-59">Rest_change&lt;500 || d50==D50</label>
+		</transition>
+		<transition id="id97">
+			<source ref="id79"/>
+			<target ref="id80"/>
+			<label kind="guard" x="-714" y="-59">Rest_change&lt;1000 || d100==D100</label>
+		</transition>
+		<transition id="id98">
+			<source ref="id77"/>
+			<target ref="id79"/>
+			<label kind="synchronisation" x="-306" y="102">Give_change?</label>
+			<label kind="assignment" x="-348" y="136">Rest_change=valid_change,
+d100=0,d50=0,d20=0,d10=0,
+d5=0,d1=0,d5=0</label>
+		</transition>
+		<transition id="id99">
+			<source ref="id80"/>
+			<target ref="id80"/>
+			<label kind="guard" x="-603" y="-247">Rest_change&gt;=500 &amp;&amp; d50&lt;D50</label>
+			<label kind="assignment" x="-612" y="-221">Rest_change=Rest_change-500,
+d50=d50+1</label>
+			<nail x="-433" y="-221"/>
+			<nail x="-510" y="-221"/>
+		</transition>
+		<transition id="id100">
+			<source ref="id81"/>
+			<target ref="id81"/>
+			<label kind="guard" x="-288" y="-230">Rest_change&gt;=200 &amp;&amp; d20&lt;D20</label>
+			<label kind="assignment" x="-297" y="-204">Rest_change=Rest_change-200,
+d20=d20+1</label>
+			<nail x="-118" y="-204"/>
+			<nail x="-195" y="-204"/>
+		</transition>
+		<transition id="id101">
+			<source ref="id82"/>
+			<target ref="id82"/>
+			<label kind="guard" x="60" y="-263">Rest_change&gt;=100 &amp;&amp; d10&lt;D10</label>
+			<label kind="assignment" x="68" y="-237">Rest_change=Rest_change-100,
+d10=d10+1</label>
+			<nail x="187" y="-229"/>
+			<nail x="102" y="-229"/>
+		</transition>
+		<transition id="id102">
+			<source ref="id83"/>
+			<target ref="id83"/>
+			<label kind="guard" x="360" y="-237">Rest_change&gt;=50 &amp;&amp; d5&lt;D5</label>
+			<label kind="assignment" x="368" y="-211">Rest_change=Rest_change-50,
+d5=d5+1</label>
+			<nail x="493" y="-204"/>
+			<nail x="402" y="-203"/>
+		</transition>
+		<transition id="id103">
+			<source ref="id84"/>
+			<target ref="id84"/>
+			<label kind="guard" x="632" y="-237">Rest_change&gt;=10 &amp;&amp; d1&lt;D1</label>
+			<label kind="assignment" x="640" y="-211">Rest_change=Rest_change-10,
+d1=d1+1</label>
+			<nail x="765" y="-204"/>
+			<nail x="674" y="-203"/>
+		</transition>
+		<transition id="id104">
+			<source ref="id85"/>
+			<target ref="id85"/>
+			<label kind="guard" x="932" y="-238">Rest_change&gt;=5 &amp;&amp; c5&lt;C5</label>
+			<label kind="assignment" x="940" y="-212">Rest_change=Rest_change-5,
+d1=d1+1</label>
+			<nail x="1065" y="-205"/>
+			<nail x="977" y="-204"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process1 = Machine();
+Process2 = Customer();
+Process3 = ChangeChcker();
+// List one or more processes to be composed into a system.
+system Process1, Process2, Process3;
+</system>
+	<queries>
+		<option key="--diagnostic" value="1"/>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+		</query>
+	</queries>
+</nta>

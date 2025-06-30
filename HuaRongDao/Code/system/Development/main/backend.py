@@ -37,7 +37,6 @@ class HuarongDaoGame:
         self.board = ['#'] * 20
         self.history = []
         self.steps = 0
-        self.step
         self.start_time = None
         # 最高分记录：每个关卡对应最少步数和最短时间
         self.current_level = None

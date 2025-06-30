@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Global Declarations
+const int ROWS = 5;
+const int COLS = 4;
+const int PIECE_COUNT = 10;
+const int STATE_LIMIT = 10000;
+const int max_movement = 40;
+
+bool success = false;
+
+int now_piece, now_direction;
+
+int first_movement = max_movement;
+
+int board[ROWS * COLS];
+
+const int sizes[PIECE_COUNT][2] = {
+  {2,1}, {2,2}, {2,1}, {2,1}, {1,2}, {2,1}, {1,1}, {1,1}, {1,1}, {1,1}
+};
+
+int positions[PIECE_COUNT];
+bool can_move[PIECE_COUNT][4];
+
+bool is_valid_2x2(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 2 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 2 &gt;= COLS)) return false;
+
+  for (i : int[0,1]) {
+    for (j : int[0,1]) {
+      int r = row + i;
+      int c = col + j;
+      int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+      int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+      int new_idx = new_r * COLS + new_c;
+      int idx = r * COLS + c;
+      if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+    }
+  }
+  return true;
+}
+
+bool is_valid_2x1(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 2 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 1 &gt;= COLS)) return false;
+
+  for (i : int[0,1]) {
+    int r = row + i;
+    int c = col;
+    int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+    int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+    int new_idx = new_r * COLS + new_c;
+    int idx = r * COLS + c;
+    if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+  }
+  return true;
+}
+
+bool is_valid_1x2(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 1 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 2 &gt;= COLS)) return false;
+
+  for (j : int[0,1]) {
+    int r = row;
+    int c = col + j;
+    int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+    int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+    int new_idx = new_r * COLS + new_c;
+    int idx = r * COLS + c;
+    if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+  }
+  return true;
+}
+
+bool is_valid_1x1(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int new_r = row + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  int new_c = col + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  int temp[PIECE_COUNT];
+  int new_idx = new_r * COLS + new_c;
+  if (new_r &lt; 0 || new_r &gt;= ROWS || new_c &lt; 0 || new_c &gt;= COLS) return false;
+  if (board[new_idx] != -1) return false;
+  return true;
+}
+
+
+
+// Explicit move functions per size
+void move_2x2(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (i : int[0,1]) for (j : int[0,1]) board[(row + i) * COLS + (col + j)] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (i : int[0,1]) for (j : int[0,1]) board[(row + i) * COLS + (col + j)] = piece_id;
+}
+
+void move_2x1(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (i : int[0,1]) board[(row + i) * COLS + col] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (i : int[0,1]) board[(row + i) * COLS + col] = piece_id;
+}
+
+void move_1x2(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (j : int[0,1]) board[row * COLS + (col + j)] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (j : int[0,1]) board[row * COLS + (col + j)] = piece_id;
+}
+
+void move_1x1(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  board[row * COLS + col] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  board[row * COLS + col] = piece_id;
+}
+
+void main_check() {
+  for (i : int[0, PIECE_COUNT - 1]) {
+    for (d : int[0, 3]) {
+      if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 2)
+        can_move[i][d] = is_valid_2x2(positions[i], d, i);
+      else if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 1)
+        can_move[i][d] = is_valid_2x1(positions[i], d, i);
+      else if (sizes[i][0] == 1 &amp;&amp; sizes[i][1] == 2)
+        can_move[i][d] = is_valid_1x2(positions[i], d, i);
+      else
+        can_move[i][d] = is_valid_1x1(positions[i], d, i);
+    }
+  }
+} 
+
+void check_success() {
+    success = (board[17] == 1) &amp;&amp; (board[18] == 1);
+}
+
+void move(int piece_id, int direction) {
+    if(first_movement == max_movement) first_movement = direction * 10 + piece_id;
+    if(piece_id == 1) move_2x2(piece_id, direction);
+    else if(piece_id == 0 || piece_id == 2 || piece_id == 3 || piece_id == 5) move_2x1(piece_id, direction);
+    else if(piece_id == 4) move_1x2(piece_id, direction);
+    else move_1x1(piece_id, direction);
+    main_check();
+    check_success();
+}
+
+void init_board() {
+  CODE_TEMPLATE
+}
+
+
+</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id0" x="-2473" y="-2159">
+			<urgent/>
+		</location>
+		<location id="id1" x="-2626" y="-2159">
+		</location>
+		<location id="id2" x="-2218" y="-2159">
+			<urgent/>
+		</location>
+		<location id="id3" x="-1980" y="-2159">
+			<urgent/>
+		</location>
+		<location id="id4" x="-1640" y="-2159">
+			<urgent/>
+		</location>
+		<location id="id5" x="-2448" y="-2380">
+			<label kind="comments" x="-2507" y="-2431">Validation Check PieceState</label>
+		</location>
+		<init ref="id1"/>
+		<transition id="id6">
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="select" x="-2439" y="-2193">p: int[0, 9]</label>
+			<label kind="assignment" x="-2455" y="-2159">now_piece = p</label>
+		</transition>
+		<transition id="id7">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-2455" y="-1810">!can_move[now_piece][now_direction]</label>
+			<nail x="-1980" y="-1776"/>
+			<nail x="-2473" y="-1776"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<nail x="-1640" y="-2312"/>
+			<nail x="-2473" y="-2312"/>
+		</transition>
+		<transition id="id9">
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-1962" y="-2193">can_move[now_piece][now_direction]</label>
+			<label kind="assignment" x="-1962" y="-2159">move(now_piece, now_direction)</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="select" x="-2201" y="-2193">d: int[0, 3]</label>
+			<label kind="assignment" x="-2200" y="-2159">now_direction = d</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-2617" y="-2261">success</label>
+			<nail x="-2541" y="-2244"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-2608" y="-2159">init_board()</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<option key="--diagnostic" value="1"/>
+		<query>
+			<formula>E&lt;&gt; success</formula>
+			<comment/>
+			<option key="--diagnostic" value="1"/>
+			<result outcome="success" type="quality" timestamp="2025-05-23 21:19:49 +0800">
+				<option key="--diagnostic" value="1"/>
+			</result>
+		</query>
+	</queries>
+</nta>

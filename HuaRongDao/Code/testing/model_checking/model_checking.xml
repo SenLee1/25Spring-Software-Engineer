@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+chan game_over;
+chan game_start;
+chan play_again;
+bool error = false;
+clock t;
+
+const int ROWS = 5;
+const int COLS = 4;
+const int PIECE_COUNT = 10;
+const int STATE_LIMIT = 10000;
+const int max_movement = 40;
+const int STACK_SIZE = 30;
+int move_stack[STACK_SIZE][2];
+int stack_top = 0;
+
+bool success = false;
+
+int now_piece, now_direction;
+
+int first_movement = max_movement;
+
+int board[ROWS * COLS];
+
+const int sizes[PIECE_COUNT][2] = {
+  {2,1}, {2,2}, {2,1}, {2,1}, {1,2}, {2,1}, {1,1}, {1,1}, {1,1}, {1,1}
+};
+
+int positions[PIECE_COUNT];
+bool can_move[PIECE_COUNT][4];
+
+bool is_valid_2x2(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 2 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 2 &gt;= COLS)) return false;
+
+  for (i : int[0,1]) {
+    for (j : int[0,1]) {
+      int r = row + i;
+      int c = col + j;
+      int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+      int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+      int new_idx = new_r * COLS + new_c;
+      int idx = r * COLS + c;
+      if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+    }
+  }
+  return true;
+}
+
+bool is_valid_2x1(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 2 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 1 &gt;= COLS)) return false;
+
+  for (i : int[0,1]) {
+    int r = row + i;
+    int c = col;
+    int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+    int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+    int new_idx = new_r * COLS + new_c;
+    int idx = r * COLS + c;
+    if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+  }
+  return true;
+}
+
+bool is_valid_1x2(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int temp[PIECE_COUNT];
+  int r = 0;
+  int c = 0;
+  if ((direction == 0 &amp;&amp; row == 0) ||
+      (direction == 1 &amp;&amp; row + 1 &gt;= ROWS) ||
+      (direction == 2 &amp;&amp; col == 0) ||
+      (direction == 3 &amp;&amp; col + 2 &gt;= COLS)) return false;
+
+  for (j : int[0,1]) {
+    int r = row;
+    int c = col + j;
+    int new_r = r + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+    int new_c = c + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+    int new_idx = new_r * COLS + new_c;
+    int idx = r * COLS + c;
+    if (board[new_idx] != -1 &amp;&amp; board[new_idx] != board[idx]) return false;
+  }
+  return true;
+}
+
+bool is_valid_1x1(int pos, int direction, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  int new_r = row + (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  int new_c = col + (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  int temp[PIECE_COUNT];
+  int new_idx = new_r * COLS + new_c;
+  if (new_r &lt; 0 || new_r &gt;= ROWS || new_c &lt; 0 || new_c &gt;= COLS) return false;
+  if (board[new_idx] != -1) return false;
+  return true;
+}
+
+bool is_complete_2x2(int pos, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  if (row + 1 &gt;= ROWS || col + 1 &gt;= COLS) return false;
+  return board[row * COLS + col] == piece_id &amp;&amp;
+         board[row * COLS + (col + 1)] == piece_id &amp;&amp;
+         board[(row + 1) * COLS + col] == piece_id &amp;&amp;
+         board[(row + 1) * COLS + (col + 1)] == piece_id;
+}
+
+bool is_complete_1x2(int pos, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  if (col + 1 &gt;= ROWS) return false;
+  return board[row * COLS + col] == piece_id &amp;&amp;
+         board[row * COLS + col + 1] == piece_id;
+}
+
+bool is_complete_2x1(int pos, int piece_id) {
+  int row = pos / COLS;
+  int col = pos % COLS;
+  if (row + 1 &gt;= COLS) return false;
+  return board[row * COLS + col] == piece_id &amp;&amp;
+         board[(row + 1) * COLS + col] == piece_id;
+}
+
+
+
+// Explicit move functions per size
+void move_2x2(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (i : int[0,1]) for (j : int[0,1]) board[(row + i) * COLS + (col + j)] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (i : int[0,1]) for (j : int[0,1]) board[(row + i) * COLS + (col + j)] = piece_id;
+}
+
+void move_2x1(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (i : int[0,1]) board[(row + i) * COLS + col] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (i : int[0,1]) board[(row + i) * COLS + col] = piece_id;
+}
+
+void move_1x2(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  for (j : int[0,1]) board[row * COLS + (col + j)] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  for (j : int[0,1]) board[row * COLS + (col + j)] = piece_id;
+}
+
+void move_1x1(int piece_id, int direction) {
+  int pos = positions[piece_id];
+  int row = pos / COLS;
+  int col = pos % COLS;
+  board[row * COLS + col] = -1;
+  row += (direction == 0 ? -1 : (direction == 1 ? 1 : 0));
+  col += (direction == 2 ? -1 : (direction == 3 ? 1 : 0));
+  positions[piece_id] = row * COLS + col;
+  board[row * COLS + col] = piece_id;
+}
+
+void main_check() {
+  for (i : int[0, PIECE_COUNT - 1]) {
+    for (d : int[0, 3]) {
+      if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 2)
+        can_move[i][d] = is_valid_2x2(positions[i], d, i);
+      else if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 1)
+        can_move[i][d] = is_valid_2x1(positions[i], d, i);
+      else if (sizes[i][0] == 1 &amp;&amp; sizes[i][1] == 2)
+        can_move[i][d] = is_valid_1x2(positions[i], d, i);
+      else
+        can_move[i][d] = is_valid_1x1(positions[i], d, i);
+    }
+  }
+}
+
+void complete_check() {
+    int sum_board = 0;
+    for (i : int[0, 19]) {
+        sum_board += board[i];
+    }
+    if (sum_board != 60) {
+        error = true;
+    }
+    for (i : int[0, PIECE_COUNT - 1]) {
+        if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 2)
+            error = error || !is_complete_2x2(positions[i], i);
+        else if (sizes[i][0] == 2 &amp;&amp; sizes[i][1] == 1)
+            error = error || !is_complete_2x1(positions[i], i);
+        else if (sizes[i][0] == 1 &amp;&amp; sizes[i][1] == 2)
+            error = error || !is_complete_1x2(positions[i], i);
+    }
+}
+
+void check_success() {
+    success = (board[17] == 1) &amp;&amp; (board[18] == 1);
+}
+
+void move(int piece_id, int direction) {
+    if(first_movement == max_movement) first_movement = direction * 10 + piece_id;
+    if (stack_top &lt; STACK_SIZE) {
+        move_stack[stack_top][0] = piece_id;
+        move_stack[stack_top][1] = direction;
+        stack_top++;
+    }
+    if(piece_id == 1) move_2x2(piece_id, direction);
+    else if(piece_id == 0 || piece_id == 2 || piece_id == 3 || piece_id == 5) move_2x1(piece_id, direction);
+    else if(piece_id == 4) move_1x2(piece_id, direction);
+    else move_1x1(piece_id, direction);
+    main_check();
+    complete_check();
+}
+
+void pop_and_undo() {
+    int undo_dir = 0;
+    if (stack_top &gt; 0) {
+        stack_top--;
+        if (move_stack[stack_top][1] == 0) undo_dir = 1;
+        else if (move_stack[stack_top][1] == 1) undo_dir = 0;
+        else if (move_stack[stack_top][1] == 2) undo_dir = 3;
+        else if (move_stack[stack_top][1] == 3) undo_dir = 2;
+        move(move_stack[stack_top][0], undo_dir);
+        stack_top--;
+    }
+}
+
+void init_board() {
+  for (i : int[0, ROWS * COLS - 1]) board[i] = -1;
+
+  // Set board contents from string "0235023511441167#89#"
+  board[0] = 0;
+  board[1] = 2;
+  board[2] = 3;
+  board[3] = 5;
+  board[4] = 0;
+  board[5] = 2;
+  board[6] = 3;
+  board[7] = 5;
+  board[8] = 1;
+  board[9] = 1;
+  board[10] = 4;
+  board[11] = 4;
+  board[12] = 1;
+  board[13] = 1;
+  board[14] = 6;
+  board[15] = 7;
+  board[16] = -1;
+  board[17] = 8;
+  board[18] = 9;
+  board[19] = -1;
+
+  // Assign positions
+  positions[0] = 0;  // Piece 0
+  positions[2] = 1;  // Piece 2
+  positions[3] = 2;  // Piece 3
+  positions[5] = 3;  // Piece 5
+  positions[1] = 8;  // Piece 1
+  positions[4] = 10;  // Piece 4
+  positions[6] = 14;  // Piece 6
+  positions[7] = 15;  // Piece 7
+  positions[8] = 17;  // Piece 8
+  positions[9] = 18;  // Piece 9
+  stack_top = 0;
+  main_check();
+  complete_check();
+}</declaration>
+	<template>
+		<name>GameOperations</name>
+		<location id="id0" x="-510" y="-127">
+			<name x="-501" y="-161">Idle</name>
+		</location>
+		<location id="id1" x="-161" y="-127">
+			<name x="-171" y="-161">ChessPiecesSelected</name>
+		</location>
+		<location id="id2" x="178" y="-127">
+			<name x="187" y="-161">Moving</name>
+		</location>
+		<location id="id3" x="-646" y="-127">
+		</location>
+		<location id="id4" x="-586" y="59">
+			<name x="-595" y="76">Reset</name>
+		</location>
+		<location id="id5" x="-586" y="-331">
+			<name x="-596" y="-365">Undo</name>
+		</location>
+		<init ref="id3"/>
+		<transition id="id6">
+			<source ref="id5"/>
+			<target ref="id0"/>
+			<nail x="-510" y="-331"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id0"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-697" y="-314">stack_top &gt; 0 &amp;&amp; !success</label>
+			<label kind="assignment" x="-705" y="-297">pop_and_undo()</label>
+		</transition>
+		<transition id="id8">
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-501" y="34">init_board()</label>
+			<nail x="-510" y="59"/>
+		</transition>
+		<transition id="id9">
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-595" y="-8">!success</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-714" y="-85">success</label>
+			<label kind="synchronisation" x="-714" y="-68">play_again!</label>
+			<nail x="-578" y="-17"/>
+		</transition>
+		<transition id="id11">
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-705" y="-212">success</label>
+			<label kind="synchronisation" x="-705" y="-195">game_over!</label>
+			<nail x="-578" y="-238"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-629" y="-144">game_start?</label>
+			<label kind="assignment" x="-628" y="-127">init_board()</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-238" y="-255">check_success()</label>
+			<nail x="178" y="-255"/>
+			<nail x="-510" y="-263"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-484" y="-68">!can_move[now_piece][now_direction]</label>
+			<nail x="-161" y="-68"/>
+			<nail x="-510" y="-68"/>
+		</transition>
+		<transition id="id15">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="select" x="-459" y="-127">p: int[0, 9], d: int[0, 3]</label>
+			<label kind="guard" x="-459" y="-153">!success</label>
+			<label kind="assignment" x="-459" y="-110">now_piece = p, now_direction = d</label>
+		</transition>
+		<transition id="id16">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-144" y="-119">can_move[now_piece][now_direction]</label>
+			<label kind="assignment" x="-144" y="-102">move(now_piece, now_direction)</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">MainPanel</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id17" x="-289" y="-238">
+			<name x="-382" y="-272">Select_panel</name>
+		</location>
+		<location id="id18" x="-76" y="-238">
+			<name x="-86" y="-272">Game_panel</name>
+		</location>
+		<init ref="id17"/>
+		<transition id="id19">
+			<source ref="id18"/>
+			<target ref="id18"/>
+			<label kind="guard" x="8" y="-280">success</label>
+			<label kind="synchronisation" x="8" y="-263">play_again?</label>
+			<nail x="0" y="-306"/>
+			<nail x="0" y="-178"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-221" y="-382">success</label>
+			<label kind="synchronisation" x="-221" y="-365">game_over?</label>
+			<nail x="-178" y="-348"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-221" y="-136">game_start!</label>
+			<nail x="-178" y="-136"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Panel = MainPanel();
+Game = GameOperations();
+// List one or more processes to be composed into a system.
+system MainPanel, Game;
+</system>
+	<queries>
+		<option key="--search-order" value="1"/>
+		<query>
+			<formula>A[] not error</formula>
+			<comment/>
+			<option key="--diagnostic" value="1"/>
+		</query>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+			<option key="--diagnostic" value="1"/>
+		</query>
+		<query>
+			<formula>E&lt;&gt; success</formula>
+			<comment/>
+			<option key="--diagnostic" value="1"/>
+			<result outcome="success" type="quality" timestamp="2025-06-06 22:39:33 +0800">
+				<option key="--diagnostic" value="1"/>
+			</result>
+		</query>
+	</queries>
+</nta>

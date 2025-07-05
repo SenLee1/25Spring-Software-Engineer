@@ -5,12 +5,12 @@ My part: Requirement part of HuaRongDao; Development part of Elevator; Validatio
 Src code are in Code/system.
 
 ## ELevator
-To run the system, change you directory to ELevator/Code/system/, then run python main.py.
+To run the system, change your directory to ELevator/Code/system/, then run python main.py.
 
 ## Vending Machine
-To run the system, change you directory to ELevator/Code/system/, then run python run.py.
+To run the system, change your directory to ELevator/Code/system/, then run python run.py.
 
 ## HuaRongDao
-To run the system, change you directory to ELevator/Code/system/Development/main, then run python backend.py and python frontend.py in two terminals.
+To run the system, change your directory to ELevator/Code/system/Development/main, then run python backend.py and python frontend.py in two terminals.
 
 
